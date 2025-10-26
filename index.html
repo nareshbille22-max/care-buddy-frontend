@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareBuddy Portal</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg,#71b7e6,#9b59b6);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+    }
+    .container {
+        background: #fff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        width: 350px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    h2 {
+        margin-bottom: 25px;
+        color: #333;
+    }
+    input {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #9b59b6;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #8e44ad;
+    }
+    .message {
+        margin-top: 12px;
+        font-size: 14px;
+        color: red;
+    }
+    .link {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #9b59b6;
+        cursor: pointer;
+        display: block;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Login Form -->
+    <div id="login-form">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <span class="link" onclick="showForgot()">Forgot Password?</span>
+        <span class="link" onclick="showSignup()">Create Account</span>
+        <div class="message" id="loginMessage"></div>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signup-form" style="display:none;">
+        <h2>Signup</h2>
+        <input type="email" id="signupEmail" placeholder="Email" required>
+        <input type="text" id="signupName" placeholder="Name" required>
+        <input type="password" id="signupPassword" placeholder="Password" required>
+        <button onclick="signup()">Signup</button>
+        <span class="link" onclick="showLogin()">Already have account? Login</span>
+        <div class="message" id="signupMessage"></div>
+    </div>
+
+    <!-- Forgot Password Form -->
+    <div id="forgot-form" style="display:none;">
+        <h2>Forgot Password</h2>
+        <input type="email" id="forgotEmail" placeholder="Enter your email" required>
+        <button onclick="forgotPassword()">Send Reset Link</button>
+        <span class="link" onclick="showLogin()">Back to Login</span>
+        <div class="message" id="forgotMessage"></div>
+    </div>
+</div>
+
+<script>
+// Switching between forms
+function showLogin() {
+    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('forgot-form').style.display = 'none';
+    clearMessages();
+}
+function showSignup() {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('signup-form').style.display = 'block';
+    document.getElementById('forgot-form').style.display = 'none';
+    clearMessages();
+}
+function showForgot() {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('forgot-form').style.display = 'block';
+    clearMessages();
+}
+
+function clearMessages() {
+    document.getElementById('loginMessage').innerText = '';
+    document.getElementById('signupMessage').innerText = '';
+    document.getElementById('forgotMessage').innerText = '';
+}
+
+// Login
+function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const msg = document.getElementById('loginMessage');
+    msg.style.color = 'red';
+    msg.innerText = 'Logging in...';
+
+    fetch('http://172.27.144.1:8080/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    })
+    .then(async res => {
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({ error: 'Login failed' }));
+            throw new Error(errData.error || 'Login failed');
+        }
+        return res.json();
+    })
+    .then(data => {
+        console.log('JWT Token:', data.token);
+        localStorage.setItem('jwtToken', data.token);
+        msg.style.color = 'green';
+        msg.innerText = 'Login successful! Redirecting...';
+
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1000);
+    })
+    .catch(err => {
+        console.error(err);
+        msg.innerText = err.message;
+    });
+}
+
+
+// Signup
+function signup() {
+    const email = document.getElementById('signupEmail').value;
+    const name = document.getElementById('signupName').value;
+    const password = document.getElementById('signupPassword').value;
+    const msg = document.getElementById('signupMessage');
+    msg.style.color = 'red';
+    msg.innerText = 'Creating account...';
+
+    fetch('http://172.27.144.1:8080/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, password })
+    })
+    .then(async res => {
+        return res.text();
+    })
+    .then(data => {
+        msg.style.color = data.includes('successfully') ? 'green' : 'red';
+        msg.innerText = data;
+    })
+    .catch(err => {
+        console.error(err);
+        msg.innerText = 'Error creating account!';
+    });
+}
+
+// Forgot Password
+function forgotPassword() {
+    const email = document.getElementById('forgotEmail').value;
+    const msg = document.getElementById('forgotMessage');
+    msg.style.color = 'red';
+    msg.innerText = 'Sending reset link...';
+
+    fetch(`http://172.27.144.1:8080/forgot-password?emailId=${email}`, {
+        method: 'POST'
+    })
+    .then(async res => {
+        return res.text();
+    })
+    .then(data => {
+        msg.style.color = data.includes('sent') ? 'green' : 'red';
+        msg.innerText = data;
+    })
+    .catch(err => {
+        console.error(err);
+        msg.innerText = 'Error sending reset link!';
+    });
+}
+</script>
+
+</body>
+</html>
