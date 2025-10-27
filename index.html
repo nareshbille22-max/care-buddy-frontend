@@ -133,7 +133,7 @@ function login() {
     msg.style.color = 'red';
     msg.innerText = 'Logging in...';
 
-    fetch('http://172.27.144.1:8080/login', {
+    fetch('https://care-buddy-apis.onrender.com/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -171,7 +171,7 @@ function signup() {
     msg.style.color = 'red';
     msg.innerText = 'Creating account...';
 
-    fetch('http://172.27.144.1:8080/signup', {
+    fetch('https://care-buddy-apis.onrender.com/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name, password })
@@ -196,7 +196,7 @@ function forgotPassword() {
     msg.style.color = 'red';
     msg.innerText = 'Sending reset link...';
 
-    fetch(`http://172.27.144.1:8080/forgot-password?emailId=${email}`, {
+    fetch(`https://care-buddy-apis.onrender.com/forgot-password?emailId=${email}`, {
         method: 'POST'
     })
     .then(async res => {
